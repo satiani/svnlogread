@@ -7,8 +7,10 @@ of SvnLogEntry objects, which can be searched for and filtered upon.
 """
 
 from optparse import OptionParser
+import sys
+import re
 
-from parser import SvnLogParser
+from parser import SvnLogParser, SVN_LOG_SEPARATOR
 
 def parse_arguments():
     parser = OptionParser()
@@ -41,11 +43,80 @@ def parse_arguments():
 
     return options, args
 
+def filter(entries, filters):
+
+    if len(filters) == 0:
+        return entries
+    
+    #trading space for time
+    filtered_entries = entries[:]
+
+    for filter, pattern in filters.iteritems():
+        re_matcher = re.compile(pattern)
+
+        for entry in entries:
+            entry_attr = getattr(entry, filter)
+
+            if not re_matcher.search(entry_attr):
+                filtered_entries.remove(entry)
+
+    return filtered_entries
+
+def process(svnlog_file, filters):
+    
+
+    buffer = []
+    entries = []
+
+    for line in svnlog_file:
+        if line.strip() == SVN_LOG_SEPARATOR: 
+
+            if len(buffer) > 0:
+                entry_text = '\n'.join(buffer)
+                entry = SvnLogParser.parse_log_entry(entry_text)
+
+                entries.append(entry)
+                buffer = []
+
+        else:
+            buffer.append(line)
+
+    filtered_entries = filter(entries, filters)
+
+    return filtered_entries
+
 def main():
     
     options, args = parse_arguments()
 
-    print options
+    svnlog_file = None
+    if options.filename == '-':
+        svnlog_file = sys.stdin
+    elif options.filename:
+        svnlog_file = file(options.filename, 'r')
+    else:
+        print >> sys.stderr, ("filename must be selected, please select a file"
+                              " with -f or --filter options")
+        sys.exit(255)
+
+    filters = {}
+
+    for attribute in dir(options):
+        if attribute.startswith('filter_'):
+
+            key = attribute[len('filter_'):]
+            value = getattr(options, attribute)
+
+            if value: filters[key] = value
+
+    filtered_entries = process(svnlog_file, filters)
+
+    if len(filtered_entries) == 0:
+        #grep-like behavior
+        sys.exit(1)
+
+    for entry in filtered_entries:
+        print entry
 
 if __name__ == '__main__':
     main()
