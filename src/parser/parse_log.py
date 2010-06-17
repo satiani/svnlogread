@@ -1,9 +1,9 @@
 """
 Parser to convert the following text:
 
-r36715 | ntantai | 2010-02-05 12:38:05 -0500 (Fri, 05 Feb 2010) | 1 line
+r36715 | amcauthor | 2010-02-05 12:38:05 -0500 (Fri, 05 Feb 2010) | 1 line
 
-add the solr war file that is missing FogBugz #12378
+Fix for BugID #1231 in Program B.
 
 to an SvnLogEntry instance.
 """
