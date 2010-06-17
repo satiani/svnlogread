@@ -17,7 +17,7 @@ def parse_arguments():
 
     parser.add_option("-f", "--file", dest="filename",
                       help=("read from FILE, put '-' if you want to read "
-                      "from standard input"), metavar="FILE")
+                            "from standard input"), metavar="FILE")
 
     parser.add_option("-a", "--author", dest="filter_author", 
                       metavar="AUTHOR", help=("filter by AUTHOR, where AUTHOR "
@@ -54,7 +54,7 @@ def filter(entries, filters):
     for filter, pattern in filters.iteritems():
         re_matcher = re.compile(pattern)
 
-        for entry in entries:
+        for entry in filtered_entries:
             entry_attr = getattr(entry, filter)
 
             if not re_matcher.search(entry_attr):
@@ -62,11 +62,10 @@ def filter(entries, filters):
 
     return filtered_entries
 
-def process(svnlog_file, filters):
+def process(svnlog_file, filters, callback = None):
     
-
     buffer = []
-    entries = []
+    filtered_entries = []
 
     for line in svnlog_file:
         if line.strip() == SVN_LOG_SEPARATOR: 
@@ -74,16 +73,23 @@ def process(svnlog_file, filters):
             if len(buffer) > 0:
                 entry_text = '\n'.join(buffer)
                 entry = SvnLogParser.parse_log_entry(entry_text)
+                
+                filtered_entry = filter([entry], filters)
+                filtered_entries += filtered_entry
 
-                entries.append(entry)
+                if callback:
+                    callback(filtered_entry)
+
                 buffer = []
 
         else:
             buffer.append(line)
 
-    filtered_entries = filter(entries, filters)
-
     return filtered_entries
+
+def printer_callback(x):
+    if x:
+        print x
 
 def main():
     
@@ -109,14 +115,11 @@ def main():
 
             if value: filters[key] = value
 
-    filtered_entries = process(svnlog_file, filters)
+    filtered_entries = process(svnlog_file, filters, printer_callback)
 
     if len(filtered_entries) == 0:
         #grep-like behavior
         sys.exit(1)
-
-    for entry in filtered_entries:
-        print entry
 
 if __name__ == '__main__':
     main()

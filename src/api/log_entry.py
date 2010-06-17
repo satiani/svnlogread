@@ -7,13 +7,15 @@ Fix for BugID #1231 in Program B.
 """
 
 REPR_TEMPLATE = \
-'''Author: %s
+'''#############################
+Author: %s
 Revision: %s
 Commit Date: %s
 Lines Changed: %s
 FogBugz: %s
 
-Comment: %s'''
+Comment: %s
+#############################'''
 
 class SvnLogEntry(object):
 
