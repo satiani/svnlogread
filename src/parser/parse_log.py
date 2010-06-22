@@ -16,7 +16,7 @@ import datetime
 COMMIT_METADATA_RE = re.compile(('r([0-9]+) \| ([^ ]+) \| (....)-(..)-(..) '
                                  '(..):(..):(..) [^|]+ \| ([0-9]+) lines?'))
 
-FOGBUGZ_RE = re.compile('(FB|FogBugz|BUGZID|Case|BugID) ?#?([0-9]+)')
+FOGBUGZ_RE = re.compile('(FB|FogBugz|BUGZID|Case|BugID) *#* *([0-9]+)')
 
 SVN_LOG_SEPARATOR = '-'*72
 
@@ -45,6 +45,7 @@ class SvnLogParser(object):
                                        )
 
         fogbugz = None
+
 
         for line in lines[2:]:
             re_obj = FOGBUGZ_RE.search(line, re.I)

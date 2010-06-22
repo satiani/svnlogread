@@ -71,14 +71,14 @@ def process(svnlog_file, filters, callback = None):
         if line.strip() == SVN_LOG_SEPARATOR: 
 
             if len(buffer) > 0:
-                entry_text = '\n'.join(buffer)
+                entry_text = ''.join(buffer)
                 entry = SvnLogParser.parse_log_entry(entry_text)
                 
                 filtered_entry = filter([entry], filters)
                 filtered_entries += filtered_entry
 
-                if callback:
-                    callback(filtered_entry)
+                if callback and filtered_entry:
+                    callback(filtered_entry[0])
 
                 buffer = []
 
