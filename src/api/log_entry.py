@@ -14,6 +14,9 @@ Lines Changed: %s
 FogBugz: %s
 
 Comment: %s
+
+Changed Paths:
+%s
 #############################'''
 
 class SvnLogEntry(object):
@@ -24,7 +27,8 @@ class SvnLogEntry(object):
                  commit_date,
                  lines_changed,
                  comment,
-                 fogbugz):
+                 fogbugz,
+                 changed_paths=()):
 
         self.revision = revision
         self.author = author
@@ -32,14 +36,18 @@ class SvnLogEntry(object):
         self.lines_changed = lines_changed
         self.comment = comment
         self.fogbugz = fogbugz
+        self.changed_paths = changed_paths
 
     def __repr__(self):
+
+        changed_paths_str = '\n'.join(self.changed_paths)
 
         return REPR_TEMPLATE % tuple(map(str, (self.author,
                                                self.revision,
                                                self.commit_date,
                                                self.lines_changed,
                                                self.fogbugz,
-                                               self.comment)
+                                               self.comment,
+                                               changed_paths_str)
                                         )
                                     )

@@ -36,12 +36,28 @@ def parse_arguments():
                                           "a regular expression."))
 
     parser.add_option("-g", "--fogbugz", dest="filter_fogbugz", 
-                      metavar="FOGBUGZ", help=("filter by FOGBUGZ, where "
-                                          "FOGBUGZ is a regular expression."))
+                      metavar="fogbugz", help=("filter by fogbugz, where "
+                                          "fogbugz is a regular expression."))
+
+    parser.add_option("-p", "--changed-path", dest="filter_changed_paths", 
+                      metavar="CHANGED_PATH", help=("filter by changed path, "
+                                                 " where fogbugz is a regular "
+                                                 "expression."))
 
     options, args = parser.parse_args()
 
     return options, args
+
+def search(re_matcher, obj):
+    if hasattr(obj, '__iter__'):
+        for item in obj:
+            if re_matcher.search(item):
+                return True
+    else:
+        if re_matcher.search(obj):
+            return True
+
+    return False
 
 def filter(entries, filters):
 
@@ -57,7 +73,7 @@ def filter(entries, filters):
         for entry in filtered_entries:
             entry_attr = getattr(entry, filter)
 
-            if not re_matcher.search(entry_attr):
+            if not search(re_matcher, entry_attr):
                 filtered_entries.remove(entry)
 
     return filtered_entries

@@ -16,6 +16,10 @@ import datetime
 COMMIT_METADATA_RE = re.compile(('r([0-9]+) \| ([^ ]+) \| (....)-(..)-(..) '
                                  '(..):(..):(..) [^|]+ \| ([0-9]+) lines?'))
 
+CHANGED_PATHS_STR = 'Changed paths:'
+
+PATH_RE = re.compile('^   [A-Z] ((/[^/]+)+/?)$')
+
 FOGBUGZ_RE = re.compile('(FB|FogBugz|BUGZID|Case|BugID) *#* *([0-9]+)')
 
 SVN_LOG_SEPARATOR = '-'*72
@@ -46,14 +50,26 @@ class SvnLogParser(object):
 
         fogbugz = None
 
+        changed_paths = []
 
-        for line in lines[2:]:
+        if lines[1].strip() == CHANGED_PATHS_STR:
+            for line in lines[2:]:
+                re_obj = PATH_RE.match(line)
+                if re_obj:
+                    changed_paths.append(re_obj.groups()[0])
+                else:
+                    break
+
+        #calculate line offset for comments given whether the log has changed paths in it
+        line_offset = 2 + (len(changed_paths) and 1 + len(changed_paths) or 0)
+
+        for line in lines[line_offset:]:
             re_obj = FOGBUGZ_RE.search(line, re.I)
             if re_obj:
                 fogbugz = re_obj.groups()[1]
                 break
 
-        comment = '\n'.join(lines[2:])
+        comment = '\n'.join(lines[line_offset:])
 
         return SvnLogEntry(revision, author, commit_date, lines_changed,
-                           comment, fogbugz)
+                           comment, fogbugz, changed_paths)
